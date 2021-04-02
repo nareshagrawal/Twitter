@@ -20,4 +20,5 @@ Deploying twitter-App on EC2 with the help of ECS via CI/CD pipeline using codeB
 
 ### Deploying Steps
 * Setup this git repository on AWS codebuild by creating build project
-* Create Cluster on AWS ECS and respective services & task definitions 
+* Create Cluster on AWS ECS and respective services & task definitions
+ 
