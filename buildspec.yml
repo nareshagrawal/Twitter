@@ -5,7 +5,7 @@ env:
     AWS_REGION_2: "us-east-2"
     username: "naresh"
     password: "Naresh@123"
-    REACT_APP_API_SERVICE_URL: 
+    REACT_APP_API_SERVICE_URL: "flask-react-777230882.us-east-1.elb.amazonaws.com" 
 
 phases:
   install:
@@ -17,7 +17,6 @@ phases:
       - >
         aws ecr get-login-password --region $AWS_REGION \
           | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-        docker login --username nareshagrawal -p $DOCKER_PASS
   build:
     commands:
       - echo building dev images...

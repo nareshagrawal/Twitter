@@ -3,7 +3,7 @@
 ###########
 
 # pull official base image
-FROM node:15.2.0-alpine as builder
+FROM node:14.16.0-buster-slim  as builder
 
 # set working directory
 WORKDIR /usr/src/app
