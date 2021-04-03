@@ -121,8 +121,8 @@ const Compose = () => {
       //const response = await fetch("http://localhost:5000/tweet", config);
       console.log("Compose.js fetching from " + process.env.REACT_APP_BE_NETWORK + ":" + process.env.REACT_APP_BE_PORT + "/tweet");
       // const response = await fetch(process.env.REACT_APP_BE_NETWORK + ":" + process.env.REACT_APP_BE_PORT + "/tweet", config);
-      //const response = await fetch("/tweet", config)
-       const response = await fetch(`${process.env.REACT_APP_API_SERVICE_URL}/tweet`, config);
+      const response = await fetch("/tweet", config)
+       //const response = await fetch(`${process.env.REACT_APP_API_SERVICE_URL}/tweet`, config);
       //const json = await response.json()
       if (response.ok) {
         //return json
