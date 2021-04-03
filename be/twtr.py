@@ -111,8 +111,7 @@ def encode_token(user_id, token_type):
 
 def decode_token(token):
     print("secret_key", get_env_var("secret_key"))
-    payload = jwt.decode(token, get_env_var(
-        "secret_key"), algorithms=["HS256"])
+    payload = jwt.decode(token, get_env_var("secret_key"), algorithms=["HS256"])
     print("decode_token:", payload)
     return payload["sub"]
 
