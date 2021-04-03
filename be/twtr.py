@@ -32,7 +32,8 @@ g = dict()
 
 # mongo
 #mongo_client = MongoClient('mongodb://localhost:27017/')
-mongo_client = MongoClient("mongodb+srv://admin:admin@tweets.8ugzv.mongodb.net/tweets?retryWrites=true&w=majority")
+mongo_client = MongoClient(
+    "mongodb+srv://admin:admin@tweets.8ugzv.mongodb.net/tweets?retryWrites=true&w=majority")
 
 app = Flask(__name__)
 CORS(app)
@@ -40,23 +41,28 @@ bcrypt = Bcrypt(app)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Here are my datasets
-tweets = dict()      
+tweets = dict()
 
 ################
 # Security
 ################
+
+
 def set_env_var():
     global g
     if 'database_url' not in g:
-        g['database_url'] = os.environ.get("DATABASE_URL", 'mongodb://localhost:27017/')
+        g['database_url'] = os.environ.get(
+            "DATABASE_URL", 'mongodb://localhost:27017/')
     if 'secret_key' not in g:
         g['secret_key'] = os.environ.get("SECRET_KEY", "my_precious_1869")
     if 'bcrypt_log_rounds' not in g:
         g['bcrypt_log_rounds'] = os.environ.get("BCRYPT_LOG_ROUNDS", 13)
     if 'access_token_expiration' not in g:
-        g['access_token_expiration'] = os.environ.get("ACCESS_TOKEN_EXPIRATION", 900)
+        g['access_token_expiration'] = os.environ.get(
+            "ACCESS_TOKEN_EXPIRATION", 900)
     if 'refresh_token_expiration' not in g:
-        g['refresh_token_expiration'] = os.environ.get("REFRESH_TOKEN_EXPIRATION", 2592000)
+        g['refresh_token_expiration'] = os.environ.get(
+            "REFRESH_TOKEN_EXPIRATION", 2592000)
     if 'users' not in g:
         users = os.environ.get("USERS", 'Elon Musk,Bill Gates,Jeff Bezos')
         print('users=', users)
@@ -67,22 +73,25 @@ def set_env_var():
         passwords = os.environ.get("PASSWORDS", 'Tesla,Clippy,Blue Horizon')
         g['passwords'] = list(passwords.split(','))
         print("g['passwords']=", g['passwords'])
-        # Once hashed, the value is irreversible. However in the case of 
-        # validating logins a simple hashing of candidate password and 
-        # subsequent comparison can be done in constant time. This helps 
+        # Once hashed, the value is irreversible. However in the case of
+        # validating logins a simple hashing of candidate password and
+        # subsequent comparison can be done in constant time. This helps
         # prevent timing attacks.
         #g['password_hashes'] = list(map(lambda p: bcrypt.generate_password_hash(str(p), g['bcrypt_log_rounds']).decode('utf-8'), g['passwords']))
         g['password_hashes'] = []
         for p in g['passwords']:
-            g['password_hashes'].append(bcrypt.generate_password_hash(p, 13).decode('utf-8'))
+            g['password_hashes'].append(
+                bcrypt.generate_password_hash(p, 13).decode('utf-8'))
         print("g['password_hashes]=", g['password_hashes'])
         g['userids'] = list(range(0, len(g['users'])))
         print("g['userids]=", g['userids'])
 
+
 def get_env_var(varname):
-    #return g.pop(varname, None)
+    # return g.pop(varname, None)
     global g
     return g[varname]
+
 
 def encode_token(user_id, token_type):
     if token_type == "access":
@@ -99,9 +108,11 @@ def encode_token(user_id, token_type):
         payload, get_env_var("secret_key"), algorithm="HS256"
     )
 
+
 def decode_token(token):
-   print("secret_key", get_env_var("secret_key"))
-    payload = jwt.decode(token, get_env_var("secret_key"), algorithms=["HS256"])
+    print("secret_key", get_env_var("secret_key"))
+    payload = jwt.decode(token, get_env_var(
+        "secret_key"), algorithms=["HS256"])
     print("decode_token:", payload)
     return payload["sub"]
 
@@ -109,8 +120,8 @@ def decode_token(token):
 ####################
 # Security Endpoints
 ####################
-@app.route("/doc")
-def home(): 
+@app.route("/")
+def home():
     return """Welcome to online mongo/twitter testing ground!<br />
         <br />
         Run the following endpoints:<br />
@@ -122,9 +133,25 @@ def home():
         http://localhost:5000/mock-tweets<br />
         Optionally, to purge database: http://localhost:5000/purge-db"""
 
-# Returns an encoded userid as jwt access and a refresh tokens. Requires username 
+
+@app.route("/doc")
+def doc():
+    return """Welcome to online mongo/twitter testing ground!<br />
+        <br />
+        Run the following endpoints:<br />
+        From collection:<br/>
+        http://localhost:5000/tweets<br />
+        http://localhost:5000/tweets-week<br />
+        http://localhost:5000/tweets-week-results<br />
+        Create new data:<br />
+        http://localhost:5000/mock-tweets<br />
+        Optionally, to purge database: http://localhost:5000/purge-db"""
+
+# Returns an encoded userid as jwt access and a refresh tokens. Requires username
 # and password. Refresh token not used. Only meant to be used with token issuer,
 # but here the token issuer and the be are one and the same.
+
+
 @app.route("/login", methods=["POST"])
 def login():
     try:
@@ -144,19 +171,22 @@ def login():
             # with our stored hash. For simplicity, we store the full password
             # and the hash, which we retrieve here
             print('password_hashes:', get_env_var('password_hashes'))
-            print("get_env_var('users').index(user):", get_env_var('users').index(user))
-            password_hash = get_env_var('password_hashes')[get_env_var('users').index(user)]
+            print("get_env_var('users').index(user):",
+                  get_env_var('users').index(user))
+            password_hash = get_env_var('password_hashes')[
+                get_env_var('users').index(user)]
             print('password_hash:', password_hash)
             a = datetime.now()
             if not bcrypt.check_password_hash(password_hash, password):
-                print('bcrypt.check_password_hash(password_hash, password) returned False!')
+                print(
+                    'bcrypt.check_password_hash(password_hash, password) returned False!')
                 return jsonify(("Authentication is required and has failed!", status.HTTP_401_UNAUTHORIZED))
             b = datetime.now()
             print('check_password took:', b - a)
             # debugging
             #print('password:', password)
             #print('type(password):', type(password))
-            #for i in range(3):
+            # for i in range(3):
             #    password_hash2 = bcrypt.generate_password_hash(password, 13).decode('utf-8')
             #    print('password_hash2:', password_hash2)
             #    if not bcrypt.check_password_hash(password_hash2, password):
@@ -168,23 +198,24 @@ def login():
             userid = get_env_var('userids')[get_env_var('users').index(user)]
             access_token = encode_token(userid, "access")
             refresh_token = encode_token(userid, "refresh")
+            print('type(access_token):', type(access_token))
             response_object = {
                 "access_token": access_token,
                 "refresh_token": refresh_token,
             }
-            #return response_object, 200
-            #return response_object
+            # return response_object, 200
+            # return response_object
             return jsonify((response_object, status.HTTP_200_OK))
     except Exception as e:
         print('exception:', e)
         return jsonify(("Authentication is required and has failed!", status.HTTP_401_UNAUTHORIZED))
 
 
-# Returns an encoded userid. Requires both tokens. If access token expired 
-# returns status.HTTP_401_UNAUTHORIZED, and user needs to fast login. If refresh 
+# Returns an encoded userid. Requires both tokens. If access token expired
+# returns status.HTTP_401_UNAUTHORIZED, and user needs to fast login. If refresh
 # token expired returns status.HTTP_401_UNAUTHORIZED, and user needs to login
-# with username and password. Tokens are usually passed in authorization headers 
-# (auth_header = request.headers.get("Authorization")). For simplicity, I just 
+# with username and password. Tokens are usually passed in authorization headers
+# (auth_header = request.headers.get("Authorization")). For simplicity, I just
 # pass access token as an extra parameter in secured API calls.
 @app.route("/fastlogin", methods=["POST"])
 def fastlogin():
@@ -220,14 +251,14 @@ def fastlogin():
                 # refresh token failure: Need username/pwd login
                 except jwt.ExpiredSignatureError:
                     return jsonify(("Lease expired. Please log in with username and password.", status.HTTP_401_UNAUTHORIZED))
-                
+
                 except jwt.InvalidTokenError:
                     return jsonify(("Invalid token. Please log in with username and password.", status.HTTP_401_UNAUTHORIZED))
 
             # access token failure: Need at least fast login
             except jwt.ExpiredSignatureError:
                 return jsonify(("Signature expired. Please fast log in.", status.HTTP_401_UNAUTHORIZED))
-            
+
             except jwt.InvalidTokenError:
                 return jsonify(("Invalid token. Please fast log in.", status.HTTP_401_UNAUTHORIZED))
 
@@ -272,7 +303,8 @@ def atlas_connect():
     # });
 
     # Python
-    client = pymongo.MongoClient("mongodb+srv://admin:<password>@tweets.8ugzv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+    client = pymongo.MongoClient(
+        "mongodb+srv://admin:<password>@tweets.8ugzv.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
     db = client.test
 
 
@@ -294,7 +326,8 @@ def insert_one(r):
             print(e)
 
     microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
-    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to insert_one.")
+    print("*** It took " + str(microseconds_doing_mongo_work) +
+          " microseconds to insert_one.")
 
 
 def update_one(r):
@@ -309,15 +342,17 @@ def update_one(r):
         try:
             mongo_collection = db['tweets']
             result = mongo_collection.update_one(
-                {"_id" : r['_id']},
+                {"_id": r['_id']},
                 {"$set": r},
                 upsert=True)
-            printg ("...update_one() to mongo acknowledged:", result.modified_count)
+            printg("...update_one() to mongo acknowledged:",
+                   result.modified_count)
         except Exception as e:
             print(e)
 
     microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
-    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to update_one.")
+    print("*** It took " + str(microseconds_doing_mongo_work) +
+          " microseconds to update_one.")
 
 
 def insert_many(r):
@@ -337,7 +372,8 @@ def insert_many(r):
             print(e)
 
     microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
-    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to insert_many.")
+    print("*** It took " + str(microseconds_doing_mongo_work) +
+          " microseconds to insert_many.")
 
 
 def update_many(r):
@@ -356,13 +392,13 @@ def update_many(r):
         print("...bulkwrite() to mongo: ", records)
         for one_r in records.values():
             op = dict(
-                    replaceOne=dict(
-                        filter=dict(
-                            _id=one_r['_id']
-                            ),
-                        replacement=one_r,
-                        upsert=True
-                    )
+                replaceOne=dict(
+                    filter=dict(
+                        _id=one_r['_id']
+                    ),
+                    replacement=one_r,
+                    upsert=True
+                )
             )
             ops.append(op)
         try:
@@ -373,7 +409,8 @@ def update_many(r):
             print(e)
 
     microseconds_doing_mongo_work = (datetime.now() - start_time).microseconds
-    print("*** It took " + str(microseconds_doing_mongo_work) + " microseconds to update_many.")
+    print("*** It took " + str(microseconds_doing_mongo_work) +
+          " microseconds to update_many.")
 
 
 def tryexcept(requesto, key, default):
@@ -385,7 +422,9 @@ def tryexcept(requesto, key, default):
         lhs = default
     return lhs
 
-## seconds since midnight
+# seconds since midnight
+
+
 def ssm():
     now = datetime.now()
     midnight = now.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -393,7 +432,7 @@ def ssm():
 
 
 ##################
-# Tweets Endpoints 
+# Tweets Endpoints
 ##################
 
 # secured with jwt
@@ -408,7 +447,7 @@ def add_tweet():
     access_token = request.json['access-token']
     print("access_token:", access_token)
     permission = verify_token(access_token)
-    if not permission[0]: 
+    if not permission[0]:
         print("tweet submission denied due to invalid token!")
         print(permission[1])
         return permission[1]
@@ -416,8 +455,8 @@ def add_tweet():
         print('access token accepted!')
 
     tweet = dict(user=user, description=description, private=private,
-                upvote=0, date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                pic=pic, _id=str(ObjectId()))
+                 upvote=0, date=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                 pic=pic, _id=str(ObjectId()))
     tweets[tweet['_id']] = tweet
 
     insert_one(tweet)
@@ -425,103 +464,118 @@ def add_tweet():
     return jsonify(tweet)
 
 # endpoint to show all of today's tweets
+
+
 @app.route("/tweets-day2", methods=["GET"])
 def get_tweets_day2():
     todaystweets = dict(
-        filter(lambda elem: 
-                elem[1]['date'].split(' ')[0] == datetime.now().strftime("%Y-%m-%d"), 
-                tweets.items())
+        filter(lambda elem:
+               elem[1]['date'].split(
+                   ' ')[0] == datetime.now().strftime("%Y-%m-%d"),
+               tweets.items())
     )
     return jsonify(todaystweets)
 
-# endpoint to show all tweets 
+# endpoint to show all tweets
+
+
 @app.route("/tweets", methods=["GET"])
 def get_tweets2():
     return jsonify(tweets)
 
 # endpoint to show all of this week's tweets (any user)
+
+
 @app.route("/tweets-week", methods=["GET"])
 def get_tweets_week2():
     weekstweets = dict(
-        filter(lambda elem: 
-                (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7, 
-                tweets.items())
+        filter(lambda elem:
+               (datetime.now(
+               ) - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7,
+               tweets.items())
     )
     return jsonify(weekstweets)
+
 
 @app.route("/tweets-results", methods=["GET"])
 def get_tweets_results():
     return json.dumps({"results":
-        sorted(
-            tweets.values(),
-            key = lambda t: t['date']
-        )
-    })
+                       sorted(
+                           tweets.values(),
+                           key=lambda t: t['date']
+                       )
+                       })
 
 
 @app.route("/tweets-week-results", methods=["GET"])
 def get_tweets_week_results():
     weektweets = dict(
-        filter(lambda elem: 
-                (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
-                (
-                    False == elem[1]['private']
-                ), 
-                tweets.items())
+        filter(lambda elem:
+               (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
+               (
+                   False == elem[1]['private']
+               ),
+               tweets.items())
     )
-    #return jsonify(todaystweets)
+    # return jsonify(todaystweets)
     return json.dumps({"results":
-        sorted(
-            [filter_tweet(k) for k in weektweets.keys()],
-            key = lambda t: t['date']
-        )
-    })
+                       sorted(
+                           [filter_tweet(k) for k in weektweets.keys()],
+                           key=lambda t: t['date']
+                       )
+                       })
 
 # endpoint to show all of today's tweets (user-specific)
+
+
 def filter_tweet(t):
     tweet = tweets[t]
-    return dict(date=tweet['date'], description=tweet['description'], 
+    return dict(date=tweet['date'], description=tweet['description'],
                 private=tweet['private'], user=tweet['user'],
                 upvote=tweet['upvote'] if 'upvote' in tweet else 0,
                 pic=tweet['pic'])
+
+
 @app.route("/tweets-user-day", methods=["POST"])
 def get_tweets_user_day():
     user = request.json['user']
     todaystweets = dict(
-        filter(lambda elem: 
-                elem[1]['date'].split(' ')[0] == datetime.now().strftime("%Y-%m-%d") and
-                (
-                    False == elem[1]['private'] or
-                    user == elem[1]['user']
-                ), 
-                tweets.items())
+        filter(lambda elem:
+               elem[1]['date'].split(' ')[0] == datetime.now().strftime("%Y-%m-%d") and
+               (
+                   False == elem[1]['private'] or
+                   user == elem[1]['user']
+               ),
+               tweets.items())
     )
-    #return jsonify(todaystweets)
+    # return jsonify(todaystweets)
     return jsonify(
         sorted(
             [filter_tweet(k) for k in todaystweets.keys()],
-            key = lambda t: t['date']
+            key=lambda t: t['date']
         )
     )
 
 # endpoint to show all of this week's tweets (user-specific)
+
+
 @app.route("/tweets-user-week", methods=["POST"])
 def get_tweets_user_week():
     user = request.json['user']
     weekstweets = dict(
-        filter(lambda elem: 
-                (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
-                (
-                    False == elem[1]['private'] or
-                    user == elem[1]['user']
-                ), 
-                tweets.items())
+        filter(lambda elem:
+               (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
+               (
+                   False == elem[1]['private'] or
+                   user == elem[1]['user']
+               ),
+               tweets.items())
     )
-    #return jsonify(weekstweets)
+    # return jsonify(weekstweets)
     return jsonify(
         sorted(
             [filter_tweet(k) for k in weekstweets.keys()],
-            key = lambda t: t['date']
+            key=lambda t: t['date']
         )
     )
 
@@ -530,21 +584,21 @@ def get_tweets_user_week():
 def get_tweets_user_week_results():
     user = request.json['user']
     weektweets = dict(
-        filter(lambda elem: 
-                (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
-                (
-                    False == elem[1]['private'] or
-                    user == elem[1]['user']
-                ), 
-                tweets.items())
+        filter(lambda elem:
+               (datetime.now() - datetime.strptime(elem[1]['date'].split(' ')[0], '%Y-%m-%d')).days < 7 and
+               (
+                   False == elem[1]['private'] or
+                   user == elem[1]['user']
+               ),
+               tweets.items())
     )
-    #return jsonify(todaystweets)
+    # return jsonify(todaystweets)
     return json.dumps({"results":
-        sorted(
-            [filter_tweet(k) for k in weektweets.keys()],
-            key = lambda t: t['date']
-        )
-    })
+                       sorted(
+                           [filter_tweet(k) for k in weektweets.keys()],
+                           key=lambda t: t['date']
+                       )
+                       })
 
 
 # endpoint to get tweet detail by id
@@ -559,6 +613,7 @@ def tweet_detail(id):
 def applyRecordLevelUpdates():
     return None
 
+
 def applyCollectionLevelUpdates():
     global tweets
     with mongo_client:
@@ -570,8 +625,9 @@ def applyCollectionLevelUpdates():
 
         howmany = len(records)
         print('found ' + str(howmany) + ' tweets!')
-        sorted_records = sorted(records, key=lambda t: datetime.strptime(t['date'], '%Y-%m-%d %H:%M:%S'))
-        #return json.dumps({"results": sorted_records })
+        sorted_records = sorted(records, key=lambda t: datetime.strptime(
+            t['date'], '%Y-%m-%d %H:%M:%S'))
+        # return json.dumps({"results": sorted_records })
 
         for tweet in sorted_records:
             tweets[tweet['_id']] = tweet
@@ -607,26 +663,28 @@ def mock_tweets():
     # create new data
     json_data_all = []
     with app.test_client() as c:
-        
+
         # tweets: 30
         print("@@@ mock-tweets(): tweets..")
-        json_data_all.append("@@@ tweets")            
+        json_data_all.append("@@@ tweets")
         for i in range(30):
             description = []
             private = random.choice([True, False])
             for j in range(20):
-                w = ''.join(random.choices(string.ascii_lowercase, k=random.randint(0,7)))
+                w = ''.join(random.choices(
+                    string.ascii_lowercase, k=random.randint(0, 7)))
                 description.append(w)
             description = ' '.join(description)
             u = ''.join(random.choices(string.ascii_lowercase, k=7))
             img_gender = random.choice(['women', 'men'])
             img_index = random.choice(range(100))
-            img_url = 'https://randomuser.me/api/portraits/' + img_gender + '/' + str(img_index) + '.jpg'
+            img_url = 'https://randomuser.me/api/portraits/' + \
+                img_gender + '/' + str(img_index) + '.jpg'
             rv = c.post('/tweet', json={
                 'user': u, 'private': private,
                 'description': description, 'pic': img_url
             })
-            #json_data.append(rv.get_json())
+            # json_data.append(rv.get_json())
         json_data_all.append(tweets)
 
     # done!
@@ -646,6 +704,8 @@ def before_first_request_func():
     applyCollectionLevelUpdates()
 
 # This runs once before any request
+
+
 @app.before_request
 def before_request_func():
     applyRecordLevelUpdates()
