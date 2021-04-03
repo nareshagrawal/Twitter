@@ -14,38 +14,38 @@ import { Link } from 'react-router-dom'
 const localStorageAuthKey = 'twtr:auth';
 function saveAuthorisation(keys) {
   if (typeof Storage !== 'undefined') {
-      try {
-          localStorage.setItem(localStorageAuthKey, JSON.stringify(keys));
+    try {
+      localStorage.setItem(localStorageAuthKey, JSON.stringify(keys));
 
-      } catch (ex) {
-          console.log(ex);
-      }
+    } catch (ex) {
+      console.log(ex);
+    }
   } else {
-      // No web storage Support :-(
+    // No web storage Support :-(
   }
 }
 function getAuthorisation() {
   if (typeof Storage !== 'undefined') {
-      try {
-        var keys = JSON.parse(localStorage.getItem(localStorageAuthKey));
-        return keys;
+    try {
+      var keys = JSON.parse(localStorage.getItem(localStorageAuthKey));
+      return keys;
 
-      } catch (ex) {
-          console.log(ex);
-      }
+    } catch (ex) {
+      console.log(ex);
+    }
   } else {
-      // No web storage Support :-(
+    // No web storage Support :-(
   }
 }
 function logout() {
   if (typeof Storage !== 'undefined') {
     try {
-        localStorage.removeItem(localStorageAuthKey);
+      localStorage.removeItem(localStorageAuthKey);
     } catch (ex) {
-        console.log(ex);
+      console.log(ex);
     }
   } else {
-      // No web storage Support :-(
+    // No web storage Support :-(
   }
 }
 
@@ -87,9 +87,9 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: 'center',
     height: `100%`,
   },
-  buttonPadding: {    
+  buttonPadding: {
     //padding: '30px',  
-    marginBottom: '30px', 
+    marginBottom: '30px',
   },
 }))
 
@@ -115,18 +115,21 @@ const SignIn = () => {
     const config = {
       method: 'POST',
       headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(paramdict)
     }
     console.log("sending out:");
     console.log(paramdict);
 
+    // print("Signin.js: fetching from " + `${process.env.REACT_APP_API_SERVICE_URL}/login`)
     // verify user/pwd, get encoded userid as access and refresh tokens in return
-    //fetch("http://localhost:5000/login", config)
-    //fetch(`${process.env.BE_NETWORK}:${process.env.BE_PORT}/login`, config)
-    fetch(`login`, config)
+    // fetch("http://localhost:5000/login", config)
+    console.log("Signin.js fetching from " + `${process.env.REACT_APP_BE_NETWORK}:${process.env.REACT_APP_BE_PORT}/tweet`);
+    //fetch(`${process.env.REACT_APP_BE_NETWORK}:${process.env.REACT_APP_BE_PORT}/login`, config)
+    fetch("/login", config)
+      //fetch(`${process.env.REACT_APP_API_SERVICE_URL}/login`, config)
       .then(response => response.json())
       .then(data => {
 
@@ -144,7 +147,7 @@ const SignIn = () => {
         // back to landing page!
         history.push("/");
       })
-      .catch( (err) => {
+      .catch((err) => {
         alert(err);
         console.log(err);
       });
@@ -160,15 +163,19 @@ const SignIn = () => {
     const config = {
       method: 'POST',
       headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify(paramdict)
     }
 
+    //print("Signin.js: fetching from " + `${process.env.REACT_APP_API_SERVICE_URL}/fastlogin`)
     // verify user/pwd, get encoded userid as access and refresh tokens in return
-    //fetch("http://localhost:5000/fastlogin", config)
-    fetch(`fastlogin`, config)
+    // fetch("http://localhost:5000/fastlogin", config)
+    console.log("Signin.js fetching from " + `${process.env.REACT_APP_BE_NETWORK}:${process.env.REACT_APP_BE_PORT}/tweet`);
+    //fetch(`${process.env.REACT_APP_BE_NETWORK}:${process.env.REACT_APP_BE_PORT}/fastlogin`, config)
+    fetch("/fastlogin", config)
+      //fetch(`${process.env.REACT_APP_API_SERVICE_URL}/fastlogin`, config)
       .then(response => response.json())
       .then(data => {
 
@@ -183,14 +190,14 @@ const SignIn = () => {
         // back to landing page!
         history.push("/");
       })
-      .catch( (err) => {
+      .catch((err) => {
         alert(err);
         console.log(err);
       });
   }
 
   // Logout attempt
-  const handleSignOut = () => { 
+  const handleSignOut = () => {
     logout();
 
     // back to landing page!
@@ -204,7 +211,7 @@ const SignIn = () => {
         <div className={classes.container}>
           <Typography component="h1" variant="h5" className={classes.padding}>
             {'Sign Out'}
-          </Typography> 
+          </Typography>
           <Typography gutterBottom>If you are not the only one on this device.</Typography>
           <Button fullWidth variant="contained" margin="normal" color="secondary" onClick={handleSignOut} className={classes.buttonPadding}>
             {'Sign Out'}
