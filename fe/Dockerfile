@@ -12,9 +12,8 @@ WORKDIR /usr/src/app
 ENV PATH /usr/src/app/node_modules/.bin:$PATH
 
 # install and cache app dependencies
-COPY package.json .
-COPY package-lock.json .
-RUN npm ci
+COPY . .
+RUN npm install
 #RUN npm install react-scripts@4.0.0 --silent
 
 # set environment variables
