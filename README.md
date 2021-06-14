@@ -1,6 +1,4 @@
-# CSYE7220
-
-## Assignment 7
+# Twitter
 
 ###  Deploying twitter-App on EC2 via codeBuild and ECS
 
